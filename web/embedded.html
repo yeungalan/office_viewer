@@ -1,0 +1,201 @@
+<html>
+    <head>
+        <title>Hello World!</title>
+		<style>
+			body{
+				background-color: rgba(250,250,250,1);
+			}
+		</style>
+        <script src="../script/jquery.min.js"></script>
+        <script src="../script/ao_module.js"></script>
+        <link rel="stylesheet" href="../../script/semantic/semantic.min.css">
+        <script type="text/javascript" src="../../script/semantic/semantic.min.js"></script>
+    </head>
+    <body>
+        <div class="ui container">
+            <div class="ui basic segment">
+                <div class="ui header">
+                    Office Viewer
+                    <div class="sub header">A simple office file viewer.</div>
+                </div>
+            </div>
+            <div id="mainarea" class="ui container">
+       
+                <div class="ui blue segment">
+                            <h3>Core Subservice</h3>
+                            <div class="ui form">
+                            <div class="field">
+                            <textarea spellcheck="false" rows="9">
+The MIT License (MIT)
+Copyright (c) 2021
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+                            </textarea>
+                        </div>
+                        </div>
+                    </div>
+            </div>
+            <div class="ui divider"></div>
+            <div id="selector" class="ui container">
+                <div class="ui form">
+                    <div class="inline fields">
+                      <label>Open With</label>
+                      <div class="field">
+                        <div class="ui radio checkbox" id="microsoft">
+                          <input type="radio" name="frequency" checked="checked">
+                          <label>Microsoft File Viewer</label>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <div class="ui radio checkbox" id="google">
+                          <input type="radio" name="frequency">
+                          <label>Google File Viewer</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <button class="ui primary button" onclick="load()" id="agree">
+                    Agree
+                  </button>
+            </div>
+              <div id="loading" class="ui container" style="display: none">
+                <p id="status"><i class="notched circle loading icon"></i>Loading...</p>
+                <p> Domain: <span id="domain"></span></p>
+                <p> File Shared: <span id="fileShared"></span></p>
+                <p> UUID: <span id="UUID"></span></p>
+                <p> IP: <span id="IP"></span></p>
+              </div>
+        </div>   
+        <br>    
+        <script>
+            //init the value
+            var file = ao_module_loadInputFiles();
+            var openWith = "google";
+            const prevOpenWith = localStorage.getItem('office_viewer_open_with');
+            //handle get the stored option
+            if(prevOpenWith != null) {
+                if(prevOpenWith == "google"){
+                    $('#google').checkbox("set checked");
+                }else if(prevOpenWith == "microsoft"){
+                    $('#microsoft').checkbox("set checked");
+                }
+                //trigger the auto redirect (0 second)
+                triggerAutoRedirect(0);
+            }
+
+            //setup the ajax
+            $.ajaxSetup({
+                "error":function() { 
+                    $("#status").text("Failed!");
+                }
+            });
+
+            //start loading the content
+            function load(){
+                //hide the element
+                $("#mainarea").hide();
+                $("#selector").hide();
+                $("#loading").show();
+                //exchange the info w/ backend
+                $.getJSON("./exchangeInfo?path="+encodeURIComponent(file[0].filepath), function( data ) {
+                    if(data.status == "fail") {
+                        $("#status").text("Failed! " + data.error);
+                        $("#domain").text(data.domain);
+                        $("#fileShared").text(data.fileShared);
+                        $("#UUID").text("-");
+                        $("#IP").text(data.ip);
+                        return;
+                    } else if(data.status == "unknown") {
+                        $("#status").text("Unknown status");
+                        $("#domain").text("-");
+                        $("#fileShared").text("-");
+                        $("#UUID").text("-");
+                        $("#IP").text("-");
+                        return;
+                    } else if(data.status == "success") {
+                        //do the frontend stuff
+                        $("#status").text("Checking if the file is accessible via the internet......");
+                        $("#domain").text(data.domain);
+                        $("#fileShared").text(data.fileShared);
+                        $("#UUID").text(data.UUID);
+                        $("#IP").text(data.ip);
+                        if($('#microsoft').checkbox("is checked")){
+                            openWith = "microsoft";
+                        } else {
+                            openWith = "google";
+                        }
+                        localStorage.setItem('office_viewer_open_with', openWith);
+                        //if it is ok then check the connection
+                        checkConnection(data);
+                    } else {
+                        $("#status").text("Unexcpeted value");
+                        return;
+                    }
+                });
+            }
+
+            function checkConnection(syncData){
+                var url = URLBuilder(file[0],syncData, "download");
+                //check if that file is accessible
+                $.ajax(URLBuilder(file[0],syncData,"preview") + "?" + getRandomInt(1048576), {
+                statusCode: {
+                    //200 OK = success, then redirect to selected viewer
+                    200: function() {
+                        $("#status").text("Everything looks OK! Redirecting...");
+                        setTimeout(function(){
+                            if(openWith == "google") {
+                                window.location = "https://docs.google.com/viewer?url=" + encodeURIComponent(url) + "&embedded=true"; 
+                            } else {
+                                window.location = "https://view.officeapps.live.com/op/embed.aspx?src=" + encodeURIComponent(url) + "&embedded=true";
+                            }
+                        }, 500);
+                    },
+                    404: function (response) {
+                        $("#status").html("We have some problems when enabling the share... Please try again");
+                    },
+                    0: function (response) {
+                        $("#status").html("Cannot establish the remote connection to your server.<br> Please turn on the port forward or UPnP function at your router or arozos and then try it again. You may want to reference the router manual for further assistance.<br><br> Requested URL: " + url);
+                    }  
+                }
+                });
+            }
+
+            //gen random int
+            function getRandomInt(max) {
+              return Math.floor(Math.random() * max);
+            }
+
+            //build the share url by parameter
+            function URLBuilder(file,syncData,method){
+                var port = window.location.port;
+                if(port != ''){
+                    port = ':' + port;
+                } 
+                var hostname = window.location.protocol + "//" + syncData.domain + port;
+                var url = hostname + "/share/" + method + "/" + syncData.UUID + "/" + file.filename;
+                return url;
+            }
+
+            //create the countdown timer without using setInterval
+            function triggerAutoRedirect(time){
+                //hmm using setTimeout instead of set interval shd help reducing the timer
+                for(var i = time; i >= 0; i--) {
+                    setTimeout(countdownButton, (time-i)*1000,i);
+                }
+            }
+
+            //edit countdown button
+            function countdownButton(time) {
+                $("#agree").text("Agree (Auto redirect in " + time + ")");
+                if(time == 0) {
+                    $("#agree").text("Redirecting...");
+                    load();
+                }
+            }
+        </script>
+    </body>
+</html>

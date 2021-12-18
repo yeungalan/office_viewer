@@ -1,0 +1,91 @@
+<html>
+    <head>
+        <title>Hello World!</title>
+		<style>
+			body{
+				background-color: rgba(250,250,250,1);
+			}
+		</style>
+        <script src="../script/jquery.min.js"></script>
+        <script src="../script/ao_module.js"></script>
+        <link rel="stylesheet" href="../../script/semantic/semantic.min.css">
+        <script type="text/javascript" src="../../script/semantic/semantic.min.js"></script>
+    </head>
+    <body>
+        <div class="ui container">
+            <div class="ui basic segment">
+                <div class="ui header">
+                    Office Viewer
+                    <div class="sub header">Setting page</div>
+                </div>
+            </div>
+            <div id="mainarea" class="ui container">
+       
+                <div class="ui blue segment">
+                            <h3>Core Subservice</h3>
+                            <div class="ui form">
+                            <div class="field">
+                            <textarea spellcheck="false" rows="9">
+The MIT License (MIT)
+Copyright (c) 2021
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+                            </textarea>
+                        </div>
+                        </div>
+                    </div>
+            </div>
+            <div class="ui divider"></div>
+            <div id="selector" class="ui container">
+                <div class="ui form">
+                    <div class="inline fields">
+                      <label>Open With</label>
+                      <div class="field">
+                        <div class="ui radio checkbox" id="microsoft">
+                          <input type="radio" name="frequency" checked="checked">
+                          <label>Microsoft File Viewer</label>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <div class="ui radio checkbox" id="google">
+                          <input type="radio" name="frequency">
+                          <label>Google File Viewer</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <button class="ui primary button" onclick="load()" id="agree">
+                    Set
+                </button>
+            </div>
+        </div>   
+        <br>    
+        <script>
+            const prevOpenWith = localStorage.getItem('office_viewer_open_with');
+            //handle get the stored option
+            if(prevOpenWith != null) {
+                if(prevOpenWith == "google"){
+                    $('#google').checkbox("set checked");
+                }else if(prevOpenWith == "microsoft"){
+                    $('#microsoft').checkbox("set checked");
+                }
+            }
+            //start loading the content
+            function load(){
+                //exchange the info w/ backend
+                if($('#microsoft').checkbox("is checked")){
+                    openWith = "microsoft";
+                 } else {
+                    openWith = "google";
+                }
+                localStorage.setItem('office_viewer_open_with', openWith);
+                $("#agree").text("Completed");
+                setTimeout(function(){ $("#agree").text("Set");},3000);
+            }
+        </script>
+    </body>
+</html>
