@@ -1,4 +1,4 @@
-module imuslab.com/arozos/officeviewer
+module imuslab.com/arozos/office_viewer
 
 go 1.14
 

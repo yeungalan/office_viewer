@@ -12,7 +12,7 @@ import (
 	"syscall"
 
 	"github.com/google/uuid"
-	aroz "imuslab.com/arozos/officeviewer/aroz"
+	aroz "imuslab.com/arozos/office_viewer/aroz"
 )
 
 var (
@@ -31,10 +31,12 @@ type exchangeInfoStruct struct {
 }
 
 /*
-	Demo for showing the implementation of ArOZ Online Subservice Structure
+	Office Viewer
+	Developed by alanyeung, UI optimization by tobychui
 
-	Proxy url is get from filepath.Dir(StartDir) of the serviceInfo.
-	In this example, the proxy path is demo/*
+	You might find some invalid comment here because the original author
+	is too lazy to remove them from the template subservices. If you
+	want to modify this code, please ignore the comments.
 */
 
 //Kill signal handler. Do something before the system the core terminate.
@@ -57,9 +59,9 @@ func main() {
 	handler = aroz.HandleFlagParse(aroz.ServiceInfo{
 		Name:     "Office Viewer",
 		Desc:     "Simple office viewer",
-		Group:    "Development",
+		Group:    "Office",
 		IconPath: "OfficeViewer/icon.png",
-		Version:  "0.0.1",
+		Version:  "1.0",
 		//You can define any path before the actualy html file. This directory (in this case demo/ ) will be the reverse proxy endpoint for this module
 		StartDir:     "OfficeViewer/home.html",
 		SupportFW:    true,
