@@ -142,6 +142,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 var url = URLBuilder(file[0],syncData, "download");
                 //check if that file is accessible
                 $.ajax(URLBuilder(file[0],syncData,"preview") + "?" + getRandomInt(1048576), {
+		beforeSend: function(xhr){  xhr.overrideMimeType( "text/plain; charset=x-user-defined" );}, //fix shit firefox problem
                 statusCode: {
                     //200 OK = success, then redirect to selected viewer
                     200: function() {
