@@ -122,7 +122,19 @@ func exchangeInfo(w http.ResponseWriter, r *http.Request) {
 	//Create an AGI Call that get the user desktop files
 	script := `
 		if (requirelib("share")){
-			sendJSONResp(share.shareFile("` + path + `", 600)); //File virtual path and timeout in seconds.
+			if(share.fileIsShared("` + path + `")){
+				//ok it is shared right now, check more information
+				var uuid = share.getFileShareUUID("` + path + `");
+				if(share.checkSharePermission(uuid) != "anyone") {
+					//ok it is not public right now
+					sendJSONResp("Error! File is not public accessible.");
+				}else {
+					//nice it is public, proceed
+					sendJSONResp(uuid);
+				}
+			}else{
+				sendJSONResp(share.shareFile("` + path + `", 600)); //File virtual path and timeout in seconds.
+			}
 		}else{
 			sendJSONResp("Error");
 		}
